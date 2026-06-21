@@ -59,12 +59,12 @@ float distance(const vector<float>& a, const vector<float>& b, const string& met
     if(metric == "cosine") {
         ans = 1 - cosine_similarity(a, b);
     }
-    else if(metric == "euclidean") {
-        ans = euclidean(a, b);
+    else if(metric == "manhattan") {
+        ans = manhattan(a, b);
     }
     else {
         // Default Choice
-        ans = manhattan(a, b);
+        ans = euclidean(a, b);
     }
 
     return ans;
