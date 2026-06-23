@@ -6,6 +6,7 @@
 #include "brute_force.h"
 #include "hnsw.h"
 #include "kdtree.h"
+#include "ollama.h"
 #include "httplib.h"
 
 using namespace std;
