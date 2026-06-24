@@ -57,6 +57,14 @@ public:
         }
     }
 
+    void delete_document(const string& id) {
+        docs.erase(
+            remove_if(docs.begin(), docs.end(),
+                [&](const Document& d){ return d.id == id; }),
+            docs.end()
+        );
+    }
+
     vector<Document> search(const string& query, int k) {
         vector<float> query_embedding = ollama.embed(query);
       
@@ -79,19 +87,27 @@ public:
     }
 
     string ask(const string& question, int k = 3) {
-        vector<Document> topKChunks = search(question, k);
-        
-        string context = "";
-        
-        for(auto& doc : topKChunks) {
-            context += doc.text + " ";
+
+        if(docs.empty()) {
+            return ollama.generate(question);
         }
 
-        string prompt = "Context: " + context + "\n\nQuestion: " + question + "\n\nAnswer based only on the context above:";
+        vector<Document> topKChunks = search(question, k);
 
-        string answer = ollama.generate(prompt);
+        string context = "";
 
-        return answer;
+        for(auto& doc : topKChunks) {
+            context += doc.text + "\n";
+        }
+
+        string prompt =
+            "Use the context if relevant.\n"
+            "If the context does not contain the answer, use your own knowledge.\n\n"
+            "Context:\n" + context +
+            "\nQuestion: " + question +
+            "\nAnswer:";
+
+        return ollama.generate(prompt);
     }
 
     vector<Document> get_all() {

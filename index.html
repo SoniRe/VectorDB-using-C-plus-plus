@@ -2,126 +2,348 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>VectorDB — HNSW + RAG</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>VecDB</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --bg: #07070f;
-        --card: #0c0c18;
-        --border: #151528;
-        --cs: #00d9ff;
-        --math: #b388ff;
-        --food: #ffb74d;
-        --sports: #69f0ae;
-        --accent: #6c63ff;
-        --text: #cdd6f4;
+        --bg: #060609;
+        --s1: #0d0d14;
+        --s2: #12121c;
+        --border: #1a1a28;
+        --border2: #22223a;
+        --accent: #7c6bff;
+        --a2: #00d4aa;
+        --a3: #ff6b6b;
+        --a4: #ffd93d;
+        --text: #e0e0f0;
         --muted: #4a4a6a;
-        --red: #f38ba8;
-        --green: #a6e3a1;
+        --muted2: #2e2e4a;
+        --cs: #7c6bff;
+        --math: #00d4aa;
+        --food: #ff6b6b;
+        --sports: #ffd93d;
+        --doc: #a78bfa;
+        --mono: "JetBrains Mono", monospace;
+        --sans: "Inter", sans-serif;
+        --glow-p: rgba(124, 107, 255, 0.15);
+        --glow-g: rgba(0, 212, 170, 0.15);
       }
-      * {
+      *,
+      *::before,
+      *::after {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
       body {
         background: var(--bg);
         color: var(--text);
-        font-family: "Fira Code", "Courier New", monospace;
-        height: 100vh;
-        overflow: hidden;
+        font-family: var(--sans);
         display: flex;
         flex-direction: column;
       }
 
-      /* ── HEADER ── */
-      header {
-        background: var(--card);
-        border-bottom: 1px solid var(--border);
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-shrink: 0;
+      /* ── SCROLLBAR ── */
+      ::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
       }
-      header h1 {
-        font-size: 17px;
-        font-weight: 600;
-        letter-spacing: 4px;
-        background: linear-gradient(
-          90deg,
-          var(--cs),
-          var(--accent),
-          var(--math)
-        );
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
+      ::-webkit-scrollbar-track {
+        background: transparent;
       }
-      .badge {
-        font-size: 10px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        letter-spacing: 1px;
-        border: 1px solid var(--border);
-        color: var(--muted);
-      }
-      .badge.hl {
-        border-color: var(--accent);
-        color: var(--accent);
-        background: rgba(108, 99, 255, 0.12);
-      }
-      .badge.ok {
-        border-color: var(--green);
-        color: var(--green);
-        background: rgba(166, 227, 161, 0.1);
-      }
-      .badge.err {
-        border-color: var(--red);
-        color: var(--red);
-        background: rgba(243, 139, 168, 0.1);
-      }
-      #statsLabel {
-        margin-left: auto;
-        font-size: 11px;
-        color: var(--muted);
+      ::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 2px;
       }
 
-      /* ── LAYOUT ── */
+      /* ── HEADER ── */
+      header {
+        height: 52px;
+        flex-shrink: 0;
+        background: var(--s1);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 20px;
+        position: relative;
+        z-index: 10;
+      }
+      .logo {
+        font-family: var(--mono);
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 2px;
+      }
+      .logo-v {
+        color: var(--accent);
+      }
+      .logo-d {
+        color: var(--a2);
+      }
+      .logo-b {
+        color: var(--muted);
+      }
+      .hbadge {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        border: 1px solid var(--border2);
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .hbadge.on {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(124, 107, 255, 0.08);
+      }
+      .hbadge.ok {
+        border-color: var(--a2);
+        color: var(--a2);
+        background: rgba(0, 212, 170, 0.08);
+      }
+      .hbadge.err {
+        border-color: var(--a3);
+        color: var(--a3);
+        background: rgba(255, 107, 107, 0.08);
+      }
+      .hstats {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        display: flex;
+        gap: 16px;
+      }
+      .hstat span {
+        color: var(--text);
+      }
+
+      /* ── MAIN LAYOUT ── */
       .layout {
         display: flex;
         flex: 1;
         overflow: hidden;
       }
-      .left-panel {
-        width: 260px;
+
+      /* ── LEFT PANEL ── */
+      .left {
+        width: 248px;
         flex-shrink: 0;
-        background: var(--card);
+        background: var(--s1);
         border-right: 1px solid var(--border);
-        overflow-y: auto;
-        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        overflow-y: auto;
+        padding: 16px;
+        gap: 20px;
       }
-      .center-panel {
+      .sec-label {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sec-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ── FORM ELEMENTS ── */
+      input[type="text"],
+      select,
+      textarea {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 9px 12px;
+        border-radius: 7px;
+        font-family: var(--mono);
+        font-size: 11px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      input[type="text"]:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(124, 107, 255, 0.1);
+      }
+      select option {
+        background: var(--s1);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 90px;
+        line-height: 1.6;
+      }
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+        background: transparent;
+        border: none;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+
+      /* ── BUTTONS ── */
+      button {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        border-radius: 7px;
+        padding: 9px 16px;
+        transition: all 0.2s;
+        letter-spacing: 0.3px;
+        width: 100%;
+      }
+      .btn-p {
+        background: linear-gradient(135deg, var(--accent), #5b4fcc);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(124, 107, 255, 0.3);
+      }
+      .btn-p:hover {
+        box-shadow: 0 4px 30px rgba(124, 107, 255, 0.5);
+        transform: translateY(-1px);
+      }
+      .btn-p:disabled {
+        opacity: 0.5;
+        transform: none;
+        cursor: wait;
+      }
+      .btn-s {
+        background: var(--s2);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn-s:hover {
+        border-color: var(--border2);
+        background: var(--border);
+      }
+      .btn-g {
+        background: rgba(0, 212, 170, 0.1);
+        color: var(--a2);
+        border: 1px solid rgba(0, 212, 170, 0.25);
+      }
+      .btn-g:hover {
+        background: rgba(0, 212, 170, 0.18);
+      }
+      .btn-g:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      .btn-r {
+        display: flex;
+        gap: 6px;
+      }
+      .btn-r button {
+        flex: 1;
+      }
+
+      /* ── ALGO SELECTOR ── */
+      .algo-row {
+        display: flex;
+        gap: 5px;
+      }
+      .abtn {
+        flex: 1;
+        padding: 7px 4px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--muted);
+        font-size: 9px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+        letter-spacing: 0.5px;
+        font-family: var(--mono);
+        text-transform: uppercase;
+        width: auto;
+      }
+      .abtn.on {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(124, 107, 255, 0.1);
+      }
+
+      /* ── LEGEND ── */
+      .legend {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .leg {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .ldot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── CENTER ── */
+      .center {
         flex: 1;
         position: relative;
         overflow: hidden;
+        background: var(--bg);
       }
       #scatter {
         display: block;
         width: 100%;
         height: 100%;
       }
-      .right-panel {
-        width: 360px;
+      #tip {
+        position: fixed;
+        display: none;
+        background: var(--s1);
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-family: var(--mono);
+        font-size: 11px;
+        pointer-events: none;
+        z-index: 200;
+        line-height: 1.6;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+
+      /* ── RIGHT PANEL ── */
+      .right {
+        width: 370px;
         flex-shrink: 0;
-        background: var(--card);
+        background: var(--s1);
         border-left: 1px solid var(--border);
         display: flex;
         flex-direction: column;
@@ -133,17 +355,23 @@
         display: flex;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
+        background: var(--bg);
       }
       .tab {
         flex: 1;
-        padding: 10px 6px;
+        padding: 12px 6px;
         text-align: center;
-        font-size: 10px;
-        letter-spacing: 1px;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 1.5px;
         cursor: pointer;
         color: var(--muted);
         border-bottom: 2px solid transparent;
         transition: all 0.2s;
+        text-transform: uppercase;
+      }
+      .tab:hover {
+        color: var(--text);
       }
       .tab.on {
         color: var(--accent);
@@ -153,151 +381,38 @@
         display: none;
         flex: 1;
         overflow-y: auto;
-        padding: 16px;
+        padding: 18px;
         flex-direction: column;
-        gap: 16px;
+        gap: 18px;
       }
       .tab-content.on {
         display: flex;
       }
 
-      /* ── COMMON COMPONENTS ── */
-      .sec {
-        font-size: 10px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 8px;
-      }
-      input[type="text"],
-      select,
-      textarea {
-        width: 100%;
+      /* ── LATENCY ── */
+      .lat-wrap {
         background: var(--bg);
         border: 1px solid var(--border);
-        color: var(--text);
-        padding: 9px 11px;
-        border-radius: 6px;
-        font-family: inherit;
-        font-size: 12px;
-        outline: none;
-        transition: border-color 0.2s;
+        border-radius: 10px;
+        padding: 16px;
       }
-      input[type="text"]:focus,
-      select:focus,
-      textarea:focus {
-        border-color: var(--accent);
+      .lat-big {
+        font-family: var(--mono);
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--a2);
+        text-shadow: 0 0 24px rgba(0, 212, 170, 0.4);
+        line-height: 1;
       }
-      textarea {
-        resize: vertical;
-        min-height: 100px;
-        line-height: 1.5;
-      }
-      select option {
-        background: var(--card);
-      }
-      input[type="range"] {
-        width: 100%;
-        accent-color: var(--accent);
-        background: transparent;
-        border: none;
-        padding: 0;
-      }
-      button {
-        width: 100%;
-        padding: 9px 14px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-family: inherit;
-        font-size: 12px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-        transition: all 0.2s;
-      }
-      .btn-p {
-        background: linear-gradient(135deg, var(--accent), #4f46e5);
-        color: #fff;
-        box-shadow: 0 0 18px rgba(108, 99, 255, 0.3);
-      }
-      .btn-p:hover {
-        box-shadow: 0 0 28px rgba(108, 99, 255, 0.55);
-        transform: translateY(-1px);
-      }
-      .btn-p:disabled {
-        opacity: 0.5;
-        transform: none;
-        cursor: wait;
-      }
-      .btn-s {
-        background: var(--border);
-        color: var(--text);
-      }
-      .btn-s:hover {
-        background: #1c1c35;
-      }
-      .btn-s:disabled {
-        opacity: 0.5;
-        cursor: wait;
-      }
-      .btn-g {
-        background: rgba(166, 227, 161, 0.12);
-        color: var(--green);
-        border: 1px solid rgba(166, 227, 161, 0.3);
-      }
-      .btn-g:hover {
-        background: rgba(166, 227, 161, 0.22);
-      }
-      .btn-g:disabled {
-        opacity: 0.5;
-        cursor: wait;
-      }
-
-      .algo-row {
-        display: flex;
-        gap: 5px;
-      }
-      .algo-btn {
-        flex: 1;
-        padding: 7px 4px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        color: var(--muted);
+      .lat-sub {
+        font-family: var(--mono);
         font-size: 10px;
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.2s;
-        letter-spacing: 0.5px;
-        font-family: inherit;
-      }
-      .algo-btn.on {
-        border-color: var(--accent);
-        color: var(--accent);
-        background: rgba(108, 99, 255, 0.12);
-      }
-
-      .legend {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      .leg-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 11px;
         color: var(--muted);
-      }
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        flex-shrink: 0;
+        margin-top: 6px;
       }
 
-      /* ── RESULTS ── */
-      .results {
+      /* ── RESULT CARDS ── */
+      .rlist {
         display: flex;
         flex-direction: column;
         gap: 7px;
@@ -305,269 +420,291 @@
       .rcard {
         background: var(--bg);
         border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 10px 12px;
+        border-radius: 9px;
+        padding: 12px 14px;
         animation: fadeUp 0.25s ease;
+        transition: border-color 0.2s;
+        cursor: default;
+      }
+      .rcard:hover {
+        border-color: var(--border2);
+      }
+      .rcard.hit {
+        border-color: rgba(124, 107, 255, 0.4);
+        box-shadow: 0 0 16px rgba(124, 107, 255, 0.08);
       }
       @keyframes fadeUp {
         from {
           opacity: 0;
-          transform: translateY(-4px);
+          transform: translateY(-5px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
       }
-      .rcard:hover {
-        border-color: #252545;
-      }
       .rrank {
+        font-family: var(--mono);
         font-size: 9px;
         color: var(--muted);
         letter-spacing: 1px;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
       }
       .rmeta {
+        font-family: var(--mono);
         font-size: 12px;
         line-height: 1.4;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
       .rfoot {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 6px;
+        gap: 8px;
       }
       .rcat {
+        font-family: var(--mono);
         font-size: 9px;
-        padding: 2px 7px;
-        border-radius: 8px;
+        padding: 3px 8px;
+        border-radius: 10px;
         letter-spacing: 0.5px;
       }
       .rdist {
+        font-family: var(--mono);
         font-size: 10px;
         color: var(--muted);
         flex: 1;
         text-align: right;
       }
-      .del {
-        background: rgba(243, 139, 168, 0.12);
-        color: var(--red);
-        border: 1px solid rgba(243, 139, 168, 0.25);
-        border-radius: 4px;
+      .delbtn {
+        background: rgba(255, 107, 107, 0.1);
+        color: var(--a3);
+        border: 1px solid rgba(255, 107, 107, 0.2);
+        border-radius: 5px;
         cursor: pointer;
         font-size: 10px;
-        padding: 2px 7px;
-        font-family: inherit;
+        padding: 3px 8px;
+        font-family: var(--mono);
         transition: background 0.2s;
         width: auto;
       }
-      .del:hover {
-        background: rgba(243, 139, 168, 0.25);
+      .delbtn:hover {
+        background: rgba(255, 107, 107, 0.2);
       }
 
-      /* ── LATENCY / BENCH / LAYERS ── */
-      .lat-big {
-        font-size: 32px;
-        font-weight: 600;
-        color: var(--cs);
-        text-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+      /* ── VEC CHART ── */
+      #vecCvs {
+        display: block;
+        width: 100%;
+        background: var(--bg);
+        border-radius: 7px;
+        border: 1px solid var(--border);
       }
-      .lat-sub {
-        font-size: 11px;
-        color: var(--muted);
-        margin-top: 2px;
-      }
+
+      /* ── BENCH ── */
       .bench {
         display: flex;
         flex-direction: column;
-        gap: 9px;
+        gap: 10px;
       }
       .brow {
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 4px;
       }
-      .blabel {
+      .blabels {
         display: flex;
         justify-content: space-between;
+        font-family: var(--mono);
         font-size: 10px;
       }
       .btrack {
-        height: 7px;
-        background: var(--bg);
-        border-radius: 4px;
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
         overflow: hidden;
       }
       .bfill {
         height: 100%;
-        border-radius: 4px;
-        transition: width 0.5s ease;
+        border-radius: 3px;
+        transition: width 0.6s ease;
       }
+
+      /* ── HNSW LAYERS ── */
       .layers {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 6px;
       }
       .lrow {
         display: flex;
         align-items: center;
-        gap: 7px;
+        gap: 8px;
+        font-family: var(--mono);
         font-size: 10px;
       }
       .lnum {
-        width: 18px;
+        width: 20px;
         text-align: right;
         color: var(--accent);
       }
       .ltrack {
         flex: 1;
         height: 5px;
-        background: var(--bg);
+        background: var(--border);
         border-radius: 3px;
         overflow: hidden;
       }
       .lfill {
         height: 100%;
-        background: var(--accent);
+        background: linear-gradient(90deg, var(--accent), var(--a2));
         border-radius: 3px;
-        opacity: 0.7;
-        transition: width 0.4s;
+        opacity: 0.75;
+        transition: width 0.5s;
       }
       .lcount {
-        width: 80px;
+        width: 90px;
         text-align: right;
         color: var(--muted);
       }
-      #vecCvs {
-        display: block;
-        width: 100%;
+
+      /* ── OLLAMA STATUS ── */
+      .osta {
         background: var(--bg);
-        border-radius: 5px;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 14px;
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 1.8;
+      }
+      .osta.ok {
+        border-color: rgba(0, 212, 170, 0.25);
+      }
+      .osta.err {
+        border-color: rgba(255, 107, 107, 0.25);
       }
 
-      /* ── DOCUMENT LIST ── */
-      .doc-list {
+      /* ── DOC CARDS ── */
+      .dlist {
         display: flex;
         flex-direction: column;
-        gap: 7px;
+        gap: 8px;
       }
       .dcard {
         background: var(--bg);
         border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 10px 12px;
+        border-radius: 9px;
+        padding: 12px 14px;
         animation: fadeUp 0.25s ease;
       }
       .dcard-title {
+        font-family: var(--mono);
         font-size: 12px;
-        font-weight: 500;
+        color: var(--a2);
         margin-bottom: 4px;
-        color: var(--green);
+        font-weight: 500;
       }
       .dcard-preview {
+        font-family: var(--mono);
         font-size: 10px;
         color: var(--muted);
         line-height: 1.5;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
       .dcard-foot {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
-      .dcard-words {
+      .dcard-meta {
+        font-family: var(--mono);
         font-size: 9px;
-        color: var(--muted);
-      }
-
-      /* ── OLLAMA STATUS ── */
-      .ollama-status {
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 10px 12px;
-        font-size: 11px;
-        line-height: 1.6;
-      }
-      .ollama-status.ok {
-        border-color: rgba(166, 227, 161, 0.3);
-      }
-      .ollama-status.err {
-        border-color: rgba(243, 139, 168, 0.3);
+        color: var(--muted2);
       }
 
       /* ── CHAT ── */
-      .chat-history {
+      .chat {
         display: flex;
         flex-direction: column;
         gap: 12px;
       }
       .chat-q {
-        background: rgba(108, 99, 255, 0.12);
-        border: 1px solid rgba(108, 99, 255, 0.25);
-        border-radius: 7px;
-        padding: 10px 12px;
-        font-size: 12px;
-        line-height: 1.5;
+        background: rgba(124, 107, 255, 0.08);
+        border: 1px solid rgba(124, 107, 255, 0.2);
+        border-radius: 9px;
+        padding: 12px;
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 1.6;
       }
       .chat-a {
         background: var(--bg);
         border: 1px solid var(--border);
-        border-radius: 7px;
-        padding: 12px;
+        border-radius: 9px;
+        padding: 14px;
       }
-      .chat-a-label {
+      .chat-label {
+        font-family: var(--mono);
         font-size: 9px;
         letter-spacing: 2px;
-        color: var(--green);
-        margin-bottom: 6px;
+        color: var(--a2);
+        margin-bottom: 8px;
+        text-transform: uppercase;
       }
-      .chat-a-text {
-        font-size: 12px;
-        line-height: 1.7;
+      .chat-text {
+        font-family: var(--mono);
+        font-size: 11px;
+        line-height: 1.8;
         white-space: pre-wrap;
       }
       .chat-ctx {
-        margin-top: 10px;
+        margin-top: 12px;
+        padding-top: 12px;
         border-top: 1px solid var(--border);
-        padding-top: 8px;
       }
-      .chat-ctx-label {
+      .ctx-label {
+        font-family: var(--mono);
         font-size: 9px;
         letter-spacing: 1px;
         color: var(--muted);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
       }
-      .ctx-chip {
-        display: inline-block;
+      .ctx-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .cchip {
+        font-family: var(--mono);
         font-size: 9px;
-        padding: 2px 7px;
+        padding: 3px 9px;
         border-radius: 10px;
-        margin: 2px;
-        background: rgba(108, 99, 255, 0.1);
-        border: 1px solid rgba(108, 99, 255, 0.2);
+        background: rgba(124, 107, 255, 0.08);
+        border: 1px solid rgba(124, 107, 255, 0.2);
         color: var(--accent);
         cursor: pointer;
+        transition: background 0.2s;
       }
-      .ctx-chip:hover {
-        background: rgba(108, 99, 255, 0.2);
+      .cchip:hover {
+        background: rgba(124, 107, 255, 0.18);
       }
       .ctx-expand {
         display: none;
+        font-family: var(--mono);
         font-size: 10px;
         color: var(--muted);
-        line-height: 1.5;
-        margin-top: 6px;
-        padding: 8px;
-        background: #0a0a18;
-        border-radius: 5px;
+        line-height: 1.6;
+        margin-top: 8px;
+        padding: 10px;
+        background: var(--s1);
+        border-radius: 6px;
       }
       .thinking {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        font-family: var(--mono);
         font-size: 11px;
         color: var(--muted);
       }
@@ -585,9 +722,10 @@
           transform: rotate(360deg);
         }
       }
-      .typing::after {
+      .cursor::after {
         content: "▋";
         animation: blink 1s step-end infinite;
+        color: var(--accent);
       }
       @keyframes blink {
         50% {
@@ -595,85 +733,107 @@
         }
       }
 
-      /* ── TOOLTIP ── */
-      #tip {
-        position: fixed;
-        display: none;
-        background: var(--card);
-        border: 1px solid var(--border);
+      /* ── INSERT STATUS ── */
+      .istatus {
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 8px 12px;
         border-radius: 6px;
-        padding: 7px 11px;
-        font-size: 11px;
-        pointer-events: none;
-        max-width: 220px;
-        z-index: 200;
         line-height: 1.5;
       }
+      .istatus.ok {
+        background: rgba(0, 212, 170, 0.08);
+        border: 1px solid rgba(0, 212, 170, 0.2);
+        color: var(--a2);
+      }
+      .istatus.err {
+        background: rgba(255, 107, 107, 0.08);
+        border: 1px solid rgba(255, 107, 107, 0.2);
+        color: var(--a3);
+      }
 
-      ::-webkit-scrollbar {
-        width: 3px;
+      /* ── GRID2 ── */
+      .g2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
-      ::-webkit-scrollbar-track {
-        background: var(--bg);
+
+      /* ── MISC ── */
+      .empty {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--muted);
+        padding: 16px 0;
       }
-      ::-webkit-scrollbar-thumb {
+      .divider {
+        height: 1px;
         background: var(--border);
-        border-radius: 2px;
+        margin: 2px 0;
       }
     </style>
   </head>
   <body>
+    <!-- ══ HEADER ══ -->
     <header>
-      <h1>padhowithPratyush</h1>
-      <span class="badge hl">HNSW</span>
-      <span class="badge">KD-TREE</span>
-      <span class="badge">BRUTE FORCE</span>
-      <span class="badge" id="ollamaBadge">OLLAMA…</span>
-      <span id="statsLabel">loading…</span>
+      <div class="logo">
+        <span class="logo-v">Vec</span><span class="logo-d">DB</span
+        ><span class="logo-b">.cpp</span>
+      </div>
+      <span class="hbadge on">HNSW</span>
+      <span class="hbadge">KD-Tree</span>
+      <span class="hbadge">Brute Force</span>
+      <span class="hbadge" id="ollamaBadge">Ollama…</span>
+      <div class="hstats">
+        <div><span id="hVecs">20</span> vectors</div>
+        <div><span>16</span> dims</div>
+        <div><span id="hDocs">0</span> docs</div>
+      </div>
     </header>
 
     <div class="layout">
       <!-- ══ LEFT PANEL ══ -->
-      <div class="left-panel">
+      <div class="left">
         <div>
-          <div class="sec">Query (Demo Vectors)</div>
-          <div style="display: flex; flex-direction: column; gap: 6px">
+          <div class="sec-label">Search Demo Vectors</div>
+          <div style="display: flex; flex-direction: column; gap: 7px">
             <input
               type="text"
               id="qInput"
               placeholder="binary tree, sushi, basketball…"
             />
-            <button class="btn-p" onclick="runSearch()">⚡ SEARCH</button>
+            <button class="btn-p" onclick="runSearch()">⚡ Search</button>
           </div>
         </div>
+
         <div>
-          <div class="sec">Algorithm</div>
+          <div class="sec-label">Algorithm</div>
           <div class="algo-row">
-            <div class="algo-btn on" data-algo="hnsw" onclick="setAlgo(this)">
+            <div class="abtn on" data-algo="hnsw" onclick="setAlgo(this)">
               HNSW
             </div>
-            <div class="algo-btn" data-algo="kdtree" onclick="setAlgo(this)">
-              KD-TREE
+            <div class="abtn" data-algo="kdtree" onclick="setAlgo(this)">
+              KD-Tree
             </div>
-            <div
-              class="algo-btn"
-              data-algo="bruteforce"
-              onclick="setAlgo(this)"
-            >
-              BRUTE
+            <div class="abtn" data-algo="bruteforce" onclick="setAlgo(this)">
+              Brute
             </div>
           </div>
         </div>
+
         <div>
-          <div class="sec">Distance Metric</div>
+          <div class="sec-label">Distance Metric</div>
           <select id="metric">
             <option value="cosine">Cosine Similarity</option>
             <option value="euclidean">Euclidean Distance</option>
             <option value="manhattan">Manhattan Distance</option>
           </select>
         </div>
+
         <div>
-          <div class="sec">Top-K: <span id="kLabel">5</span></div>
+          <div class="sec-label">
+            Top-K &nbsp;<span style="color: var(--text)" id="kLabel">5</span>
+          </div>
           <input
             type="range"
             id="kSlider"
@@ -683,55 +843,56 @@
             oninput="document.getElementById('kLabel').textContent = this.value"
           />
         </div>
+
         <div>
-          <div class="sec">Category Legend</div>
+          <div class="sec-label">Legend</div>
           <div class="legend">
-            <div class="leg-row">
+            <div class="leg">
               <div
-                class="dot"
-                style="background: var(--cs); box-shadow: 0 0 5px var(--cs)"
+                class="ldot"
+                style="background: var(--cs); box-shadow: 0 0 6px var(--cs)"
               ></div>
               CS / Algorithms
             </div>
-            <div class="leg-row">
+            <div class="leg">
               <div
-                class="dot"
-                style="background: var(--math); box-shadow: 0 0 5px var(--math)"
+                class="ldot"
+                style="background: var(--math); box-shadow: 0 0 6px var(--math)"
               ></div>
               Mathematics
             </div>
-            <div class="leg-row">
+            <div class="leg">
               <div
-                class="dot"
-                style="background: var(--food); box-shadow: 0 0 5px var(--food)"
+                class="ldot"
+                style="background: var(--food); box-shadow: 0 0 6px var(--food)"
               ></div>
               Food &amp; Cooking
             </div>
-            <div class="leg-row">
+            <div class="leg">
               <div
-                class="dot"
+                class="ldot"
                 style="
                   background: var(--sports);
-                  box-shadow: 0 0 5px var(--sports);
+                  box-shadow: 0 0 6px var(--sports);
                 "
               ></div>
               Sports &amp; Games
             </div>
-            <div class="leg-row">
+            <div class="leg">
               <div
-                class="dot"
-                style="
-                  background: var(--green);
-                  box-shadow: 0 0 5px var(--green);
-                "
+                class="ldot"
+                style="background: var(--doc); box-shadow: 0 0 6px var(--doc)"
               ></div>
               Documents (RAG)
             </div>
           </div>
         </div>
+
+        <div class="divider"></div>
+
         <div>
-          <div class="sec">Insert Demo Vector</div>
-          <div style="display: flex; flex-direction: column; gap: 6px">
+          <div class="sec-label">Insert Demo Vector</div>
+          <div style="display: flex; flex-direction: column; gap: 7px">
             <input type="text" id="addMeta" placeholder="Description…" />
             <select id="addCat">
               <option value="cs">CS / Algorithms</option>
@@ -739,55 +900,59 @@
               <option value="food">Food &amp; Cooking</option>
               <option value="sports">Sports &amp; Games</option>
             </select>
-            <button class="btn-s" onclick="addVector()">+ INSERT</button>
+            <button class="btn-s" onclick="addVector()">+ Insert Vector</button>
           </div>
         </div>
+
         <div>
-          <div class="sec">Benchmark</div>
+          <div class="sec-label">Benchmark</div>
           <button class="btn-s" onclick="runBenchmark()">
-            ▶ COMPARE ALL ALGOS
+            ▶ Compare All Algos
           </button>
         </div>
       </div>
 
-      <!-- ══ CENTER: SCATTER PLOT ══ -->
-      <div class="center-panel"><canvas id="scatter"></canvas></div>
+      <!-- ══ CENTER: SCATTER ══ -->
+      <div class="center">
+        <canvas id="scatter"></canvas>
+      </div>
 
-      <!-- ══ RIGHT PANEL: TABS ══ -->
-      <div class="right-panel">
+      <!-- ══ RIGHT PANEL ══ -->
+      <div class="right">
         <div class="tabs">
-          <div class="tab on" onclick="switchTab('search')">SEARCH</div>
-          <div class="tab" onclick="switchTab('docs')">DOCUMENTS</div>
-          <div class="tab" onclick="switchTab('rag')">ASK AI</div>
+          <div class="tab on" onclick="switchTab('search')">Search</div>
+          <div class="tab" onclick="switchTab('docs')">Documents</div>
+          <div class="tab" onclick="switchTab('rag')">Ask AI</div>
         </div>
 
         <!-- TAB: SEARCH -->
         <div class="tab-content on" id="tab-search">
-          <div>
-            <div class="sec">Search Latency</div>
+          <div class="lat-wrap">
             <div class="lat-big" id="latBig">—</div>
-            <div class="lat-sub" id="latSub">No query yet</div>
+            <div class="lat-sub" id="latSub">No query yet · run a search</div>
           </div>
+
           <div>
-            <div class="sec">Top Matches</div>
-            <div class="results" id="results">
-              <div style="color: var(--muted); font-size: 11px">
-                Run a search to see results…
-              </div>
+            <div class="sec-label">Top Matches</div>
+            <div class="rlist" id="results">
+              <div class="empty">Run a search to see results…</div>
             </div>
           </div>
+
           <div>
-            <div class="sec">Query Embedding (16D)</div>
-            <canvas id="vecCvs" height="76"></canvas>
+            <div class="sec-label">Query Embedding (16D)</div>
+            <canvas id="vecCvs" height="72"></canvas>
           </div>
+
           <div id="benchSec" style="display: none">
-            <div class="sec">Algorithm Comparison</div>
+            <div class="sec-label">Algorithm Comparison</div>
             <div class="bench" id="benchBars"></div>
           </div>
+
           <div>
-            <div class="sec">HNSW Graph Layers</div>
+            <div class="sec-label">HNSW Graph Layers</div>
             <div class="layers" id="layers">
-              <div style="color: var(--muted); font-size: 11px">Loading…</div>
+              <div class="empty">Loading…</div>
             </div>
           </div>
         </div>
@@ -795,129 +960,127 @@
         <!-- TAB: DOCUMENTS -->
         <div class="tab-content" id="tab-docs">
           <div>
-            <div class="sec">Ollama Status</div>
-            <div class="ollama-status" id="ollamaStatus">Checking…</div>
+            <div class="sec-label">Ollama Status</div>
+            <div class="osta" id="ollamaStatus">Checking…</div>
           </div>
+
           <div>
-            <div class="sec">Insert Document</div>
+            <div class="sec-label">Embed &amp; Insert Document</div>
             <div style="display: flex; flex-direction: column; gap: 8px">
-              <input
-                type="text"
-                id="docTitle"
-                placeholder="Document title / topic…"
-              />
+              <input type="text" id="docTitle" placeholder="Title / topic…" />
               <textarea
                 id="docText"
-                placeholder="Paste your notes, textbook excerpt, lecture content…&#10;&#10;Long text is automatically split into overlapping chunks and each chunk gets its own real embedding via Ollama's nomic-embed-text model."
+                placeholder="Paste lecture notes, textbook excerpts, articles…&#10;&#10;Auto-chunked into 200-word segments. Each chunk gets a real 768D embedding via Ollama nomic-embed-text."
               ></textarea>
               <button
                 class="btn-g"
                 id="insertDocBtn"
                 onclick="insertDocument()"
               >
-                ⚡ EMBED &amp; INSERT
+                ⚡ Embed &amp; Insert
               </button>
-              <div
-                id="insertStatus"
-                style="font-size: 11px; color: var(--muted)"
-              ></div>
+              <div id="insertStatus"></div>
             </div>
           </div>
+
           <div>
-            <div class="sec">
-              Stored Documents (<span id="docCountLabel">0</span>)
+            <div class="sec-label">
+              Stored Documents &nbsp;<span
+                style="color: var(--text)"
+                id="docCountLabel"
+                >0</span
+              >
             </div>
-            <div class="doc-list" id="docList">
-              <div style="color: var(--muted); font-size: 11px">
-                No documents yet. Insert some above.
-              </div>
+            <div class="dlist" id="docList">
+              <div class="empty">No documents yet.</div>
             </div>
           </div>
         </div>
 
-        <!-- TAB: ASK AI (RAG) -->
+        <!-- TAB: ASK AI -->
         <div class="tab-content" id="tab-rag">
           <div>
-            <div class="sec">Ask a Question</div>
+            <div class="sec-label">Ask a Question</div>
             <div style="display: flex; flex-direction: column; gap: 8px">
               <textarea
-                id="ragQuestion"
+                id="ragQ"
                 rows="3"
-                placeholder="What is dynamic programming?&#10;Explain the main idea of HNSW.&#10;How does the recipe differ from…"
+                placeholder="What is dynamic programming?&#10;Explain HNSW in simple terms.&#10;How does deadlock occur?"
               ></textarea>
-              <div style="display: flex; gap: 6px">
-                <select id="ragK" style="width: auto; flex-shrink: 0">
-                  <option value="2">Top 2</option>
-                  <option value="3" selected>Top 3</option>
-                  <option value="5">Top 5</option>
+              <div class="g2">
+                <select id="ragK">
+                  <option value="2">Top 2 chunks</option>
+                  <option value="3" selected>Top 3 chunks</option>
+                  <option value="5">Top 5 chunks</option>
                 </select>
-                <button
-                  class="btn-g"
-                  id="askBtn"
-                  onclick="askAI()"
-                  style="flex: 1"
-                >
-                  🤖 ASK AI
+                <button class="btn-g" id="askBtn" onclick="askAI()">
+                  🤖 Ask AI
                 </button>
               </div>
-              <div style="font-size: 10px; color: var(--muted)">
-                Uses your inserted documents as context. Answers come from the
-                local LLM.
+              <div
+                style="
+                  font-family: var(--mono);
+                  font-size: 9px;
+                  color: var(--muted);
+                  line-height: 1.6;
+                "
+              >
+                Retrieves similar chunks via HNSW → sends as context to llama3.2
+                → answers from your documents only.
               </div>
             </div>
           </div>
+
           <div>
-            <div class="sec">Conversation</div>
-            <div class="chat-history" id="chatHistory">
-              <div style="color: var(--muted); font-size: 11px">
+            <div class="sec-label">Conversation</div>
+            <div class="chat" id="chatHistory">
+              <div class="empty">
                 Ask a question about your inserted documents…
               </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- end right-panel -->
     </div>
-    <!-- end layout -->
 
     <div id="tip"></div>
 
     <script>
-      // ════════════════════════════════════════════════════════════
-      //  CONSTANTS
-      // ════════════════════════════════════════════════════════════
-      const API = "http://localhost:8080";
+      // ════════════════════════════════════════════════════════
+      //  CONFIG
+      // ════════════════════════════════════════════════════════
+      const API = "http://localhost:5000";
       const DIMS = 16;
       const COL = {
-        cs: "#00d9ff",
-        math: "#b388ff",
-        food: "#ffb74d",
-        sports: "#69f0ae",
-        doc: "#a6e3a1",
-        default: "#90a4ae",
+        cs: "#7c6bff",
+        math: "#00d4aa",
+        food: "#ff6b6b",
+        sports: "#ffd93d",
+        doc: "#a78bfa",
+        default: "#6a6a8a",
       };
       const DIM_COL = [
-        "#00d9ff",
-        "#00d9ff",
-        "#00d9ff",
-        "#00d9ff",
-        "#b388ff",
-        "#b388ff",
-        "#b388ff",
-        "#b388ff",
-        "#ffb74d",
-        "#ffb74d",
-        "#ffb74d",
-        "#ffb74d",
-        "#69f0ae",
-        "#69f0ae",
-        "#69f0ae",
-        "#69f0ae",
+        "#7c6bff",
+        "#7c6bff",
+        "#7c6bff",
+        "#7c6bff",
+        "#00d4aa",
+        "#00d4aa",
+        "#00d4aa",
+        "#00d4aa",
+        "#ff6b6b",
+        "#ff6b6b",
+        "#ff6b6b",
+        "#ff6b6b",
+        "#ffd93d",
+        "#ffd93d",
+        "#ffd93d",
+        "#ffd93d",
       ];
 
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       //  STATE
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       let allItems = [],
         pcaPoints = [],
         hitIds = new Set(),
@@ -927,14 +1090,14 @@
         selAlgo = "hnsw",
         searchResults = [];
 
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       //  TABS
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       function switchTab(name) {
-        document.querySelectorAll(".tab").forEach((t, i) => {
-          const names = ["search", "docs", "rag"];
-          t.classList.toggle("on", names[i] === name);
-        });
+        const names = ["search", "docs", "rag"];
+        document
+          .querySelectorAll(".tab")
+          .forEach((t, i) => t.classList.toggle("on", names[i] === name));
         document
           .querySelectorAll(".tab-content")
           .forEach((c) => c.classList.remove("on"));
@@ -942,9 +1105,9 @@
         if (name === "docs") loadDocList();
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  TEXT → 16-D EMBEDDING (for demo vectors)
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      //  TEXT → 16D EMBEDDING (keyword-based for demo)
+      // ════════════════════════════════════════════════════════
       const KW = {
         cs: [
           "algorithm",
@@ -970,6 +1133,8 @@
           "dfs",
           "heap",
           "trie",
+          "code",
+          "software",
         ],
         math: [
           "calculus",
@@ -989,6 +1154,9 @@
           "eigenvalue",
           "statistics",
           "proof",
+          "geometry",
+          "set",
+          "number",
         ],
         food: [
           "food",
@@ -1006,11 +1174,13 @@
           "spice",
           "noodle",
           "bread",
-          "croissant",
           "taco",
           "fish",
           "rice",
           "soup",
+          "curry",
+          "biryani",
+          "dessert",
         ],
         sports: [
           "sport",
@@ -1028,12 +1198,13 @@
           "match",
           "tournament",
           "olympic",
-          "dribble",
-          "tackle",
-          "serve",
+          "cricket",
+          "badminton",
+          "run",
+          "jump",
+          "ball",
         ],
       };
-
       function textToEmbedding(text) {
         const t = text.toLowerCase(),
           ws = t.split(/\s+/);
@@ -1047,15 +1218,15 @@
               }
         const mx = Math.max(...Object.values(s), 0.01);
         const n = (v) => Math.min((v / mx) * 0.88, 0.94);
-        const jitter = () => (Math.random() - 0.5) * 0.04;
+        const j = () => (Math.random() - 0.5) * 0.04;
         const emb = new Array(16).fill(0.08);
         const fill = (i, score) => {
           if (score < 0.01) return;
           const b = n(score);
-          emb[i] = Math.max(0.05, b + jitter());
-          emb[i + 1] = Math.max(0.05, b + jitter());
-          emb[i + 2] = Math.max(0.05, b * 0.92 + jitter());
-          emb[i + 3] = Math.max(0.05, b * 0.87 + jitter());
+          emb[i] = Math.max(0.05, b + j());
+          emb[i + 1] = Math.max(0.05, b + j());
+          emb[i + 2] = Math.max(0.05, b * 0.92 + j());
+          emb[i + 3] = Math.max(0.05, b * 0.87 + j());
         };
         fill(0, s.cs);
         fill(4, s.math);
@@ -1064,9 +1235,9 @@
         return emb;
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  PCA
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      //  PCA 2D
+      // ════════════════════════════════════════════════════════
       function pca2D(embs) {
         const n = embs.length,
           d = embs[0].length;
@@ -1110,9 +1281,9 @@
         ]);
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  SCATTER PLOT
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      //  SCATTER CANVAS
+      // ════════════════════════════════════════════════════════
       const sc = document.getElementById("scatter"),
         ctx = sc.getContext("2d");
       let bounds = { minX: -1, maxX: 1, minY: -1, maxY: 1 };
@@ -1125,7 +1296,7 @@
       window.addEventListener("resize", resize);
 
       function w2c(wx, wy) {
-        const P = 70,
+        const P = 60,
           W = sc.width,
           H = sc.height,
           rx = bounds.maxX - bounds.minX || 1,
@@ -1138,42 +1309,87 @@
 
       function drawFrame() {
         ctx.clearRect(0, 0, sc.width, sc.height);
-        ctx.fillStyle = "#07070f";
-        ctx.fillRect(0, 0, sc.width, sc.height);
-        ctx.strokeStyle = "#0e0e1e";
+        const W = sc.width,
+          H = sc.height;
+
+        // bg gradient
+        const bg = ctx.createRadialGradient(
+          W / 2,
+          H / 2,
+          0,
+          W / 2,
+          H / 2,
+          Math.max(W, H) * 0.7,
+        );
+        bg.addColorStop(0, "#0a0a12");
+        bg.addColorStop(1, "#060609");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
+
+        // grid
+        ctx.strokeStyle = "rgba(26,26,40,0.8)";
         ctx.lineWidth = 1;
-        for (let i = 0; i <= 8; i++) {
-          const tx = 70 + (i / 8) * (sc.width - 140),
-            ty = 70 + (i / 8) * (sc.height - 140);
+        for (let i = 0; i <= 10; i++) {
+          const tx = 60 + (i / 10) * (W - 120),
+            ty = 60 + (i / 10) * (H - 120);
           ctx.beginPath();
-          ctx.moveTo(tx, 70);
-          ctx.lineTo(tx, sc.height - 70);
+          ctx.moveTo(tx, 60);
+          ctx.lineTo(tx, H - 60);
           ctx.stroke();
           ctx.beginPath();
-          ctx.moveTo(70, ty);
-          ctx.lineTo(sc.width - 70, ty);
+          ctx.moveTo(60, ty);
+          ctx.lineTo(W - 60, ty);
           ctx.stroke();
         }
-        ctx.fillStyle = "#1a1a38";
-        ctx.font = "11px Fira Code,monospace";
-        ctx.fillText("PC₁ →", sc.width / 2 - 40, sc.height - 18);
+
+        // axis labels
+        ctx.fillStyle = "#1e1e30";
+        ctx.font = "11px JetBrains Mono,monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("PC₁ →", W / 2, H - 14);
         ctx.save();
-        ctx.translate(18, sc.height / 2 + 50);
+        ctx.translate(14, H / 2);
         ctx.rotate(-Math.PI / 2);
         ctx.fillText("PC₂ →", 0, 0);
         ctx.restore();
-        ctx.fillStyle = "#151530";
-        ctx.font = "12px Fira Code,monospace";
-        ctx.fillText("2D PCA Projection  ·  Semantic Space", 80, 28);
 
+        // title
+        ctx.fillStyle = "#1e1e38";
+        ctx.font = "600 12px JetBrains Mono,monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("Semantic Space  ·  2D PCA Projection", 70, 38);
+
+        // cluster halos
+        const clusters = {};
+        for (const pt of pcaPoints) {
+          if (!clusters[pt.item.category]) clusters[pt.item.category] = [];
+          clusters[pt.item.category].push(w2c(pt.x, pt.y));
+        }
+        for (const [cat, pts] of Object.entries(clusters)) {
+          const cx2 = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+          const cy2 = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+          const r =
+            Math.max(...pts.map((p) => Math.hypot(p[0] - cx2, p[1] - cy2))) +
+            28;
+          const col = COL[cat] || COL.default;
+          const gr = ctx.createRadialGradient(cx2, cy2, r * 0.1, cx2, cy2, r);
+          gr.addColorStop(0, col + "14");
+          gr.addColorStop(1, col + "00");
+          ctx.beginPath();
+          ctx.arc(cx2, cy2, r, 0, Math.PI * 2);
+          ctx.fillStyle = gr;
+          ctx.fill();
+        }
+
+        // connection lines to results
         if (queryPt && hitIds.size > 0) {
           const [qx, qy] = w2c(queryPt.x, queryPt.y);
           for (const pt of pcaPoints) {
             if (!hitIds.has(pt.item.id)) continue;
             const [px, py] = w2c(pt.x, pt.y);
-            ctx.strokeStyle = "rgba(108,99,255,0.18)";
+            ctx.strokeStyle = "rgba(124,107,255,0.2)";
             ctx.lineWidth = 1;
-            ctx.setLineDash([4, 4]);
+            ctx.setLineDash([3, 5]);
             ctx.beginPath();
             ctx.moveTo(qx, qy);
             ctx.lineTo(px, py);
@@ -1181,44 +1397,65 @@
             ctx.setLineDash([]);
           }
         }
+
+        // draw points
         for (const pt of pcaPoints) {
-          const [cx, cy] = w2c(pt.x, pt.y);
+          const [cx2, cy2] = w2c(pt.x, pt.y);
           const col = COL[pt.item.category] || COL.default;
-          const isHit = hitIds.has(pt.item.id),
-            r = isHit ? 10 : 7;
+          const isHit = hitIds.has(pt.item.id);
+          const isHover = hoverItem && hoverItem.id === pt.item.id;
+          const r = isHit ? 9 : 6;
+
+          // outer glow
           if (isHit) {
-            const pr = r + 7 + Math.sin(pulse) * 3.5;
+            const pr = r + 8 + Math.sin(pulse) * 4;
+            const gr = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, pr);
+            gr.addColorStop(0, col + "40");
+            gr.addColorStop(1, col + "00");
             ctx.beginPath();
-            ctx.arc(cx, cy, pr, 0, 2 * Math.PI);
-            ctx.strokeStyle = col + "55";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
+            ctx.arc(cx2, cy2, pr, 0, Math.PI * 2);
+            ctx.fillStyle = gr;
+            ctx.fill();
           }
-          const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3);
-          grd.addColorStop(0, col + (isHit ? "bb" : "88"));
-          grd.addColorStop(1, "transparent");
+
+          // soft ambient glow
+          const gr2 = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, r * 3.5);
+          gr2.addColorStop(0, col + (isHit ? "55" : "33"));
+          gr2.addColorStop(1, col + "00");
           ctx.beginPath();
-          ctx.arc(cx, cy, r * 3, 0, 2 * Math.PI);
-          ctx.fillStyle = grd;
+          ctx.arc(cx2, cy2, r * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = gr2;
           ctx.fill();
+
+          // dot
           ctx.beginPath();
-          ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-          ctx.fillStyle = col;
+          ctx.arc(cx2, cy2, r, 0, Math.PI * 2);
+          ctx.fillStyle = isHit ? col : col + "88";
           ctx.fill();
-          if (hoverItem && hoverItem.id === pt.item.id) {
+
+          // ring on hover
+          if (isHover) {
             ctx.beginPath();
-            ctx.arc(cx, cy, r + 5, 0, 2 * Math.PI);
+            ctx.arc(cx2, cy2, r + 5, 0, Math.PI * 2);
             ctx.strokeStyle = col;
             ctx.lineWidth = 1.5;
             ctx.stroke();
           }
+
+          // label
+          ctx.fillStyle = isHit ? "#cccce8" : "#2e2e4a";
+          ctx.font = (isHit ? "500 " : "") + "9px JetBrains Mono,monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(pt.item.metadata.replace(/_/g, " "), cx2, cy2 - (r + 6));
         }
+
+        // query star
         if (queryPt) {
           const [qx, qy] = w2c(queryPt.x, queryPt.y);
           ctx.save();
           ctx.translate(qx, qy);
           ctx.shadowColor = "#fff";
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = 20;
           ctx.beginPath();
           for (let i = 0; i < 10; i++) {
             const a = (i * Math.PI) / 5 - Math.PI / 2,
@@ -1231,30 +1468,33 @@
           ctx.fill();
           ctx.shadowBlur = 0;
           ctx.restore();
-          ctx.fillStyle = "#aaaacc";
-          ctx.font = "10px Fira Code,monospace";
-          ctx.fillText("query", qx + 16, qy + 4);
-        }
-        if (!pcaPoints.length) {
-          ctx.fillStyle = "#1a1a38";
-          ctx.font = "13px Fira Code,monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("Connecting to VectorDB…", sc.width / 2, sc.height / 2);
+          ctx.fillStyle = "#8888aa";
+          ctx.font = "10px JetBrains Mono,monospace";
           ctx.textAlign = "left";
+          ctx.fillText("query", qx + 17, qy + 4);
         }
+
+        if (!pcaPoints.length) {
+          ctx.fillStyle = "#1e1e30";
+          ctx.font = "13px JetBrains Mono,monospace";
+          ctx.textAlign = "center";
+          ctx.fillText("Connecting to VecDB…", W / 2, H / 2);
+        }
+
         pulse += 0.05;
         requestAnimationFrame(drawFrame);
       }
 
+      // hover tooltip
       sc.addEventListener("mousemove", (e) => {
         const rect = sc.getBoundingClientRect(),
           mx = e.clientX - rect.left,
           my = e.clientY - rect.top;
         hoverItem = null;
-        let best = 18;
+        let best = 20;
         for (const pt of pcaPoints) {
-          const [cx, cy] = w2c(pt.x, pt.y),
-            d = Math.hypot(mx - cx, my - cy);
+          const [cx2, cy2] = w2c(pt.x, pt.y),
+            d = Math.hypot(mx - cx2, my - cy2);
           if (d < best) {
             best = d;
             hoverItem = pt.item;
@@ -1265,8 +1505,8 @@
           const col = COL[hoverItem.category] || COL.default;
           tip.style.display = "block";
           tip.style.left = e.clientX + 14 + "px";
-          tip.style.top = e.clientY - 8 + "px";
-          tip.innerHTML = `<span style="color:${col}">[${hoverItem.category}]</span><br>${hoverItem.metadata}`;
+          tip.style.top = e.clientY - 10 + "px";
+          tip.innerHTML = `<span style="color:${col}">[${hoverItem.category}]</span><br><b>${hoverItem.metadata}</b>`;
         } else tip.style.display = "none";
       });
       sc.addEventListener("mouseleave", () => {
@@ -1274,16 +1514,17 @@
         document.getElementById("tip").style.display = "none";
       });
 
-      // ════════════════════════════════════════════════════════════
-      //  LOAD DEMO ITEMS
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      //  LOAD ITEMS
+      // ════════════════════════════════════════════════════════
       async function loadItems() {
         try {
-          const r = await fetch(API + "/items");
-          allItems = await r.json();
-          if (allItems.length >= 2) {
-            const coords = pca2D(allItems.map((v) => v.embedding));
-            pcaPoints = allItems.map((item, i) => ({
+          const r = await fetch(API + "/items"),
+            items = await r.json();
+          allItems = items;
+          if (items.length >= 2) {
+            const coords = pca2D(items.map((v) => v.embedding));
+            pcaPoints = items.map((item, i) => ({
               x: coords[i][0],
               y: coords[i][1],
               item,
@@ -1298,8 +1539,8 @@
               y0 = Math.min(y0, p.y);
               y1 = Math.max(y1, p.y);
             }
-            const px = (x1 - x0) * 0.18 || 0.1,
-              py = (y1 - y0) * 0.18 || 0.1;
+            const px = (x1 - x0) * 0.2 || 0.1,
+              py = (y1 - y0) * 0.2 || 0.1;
             bounds = {
               minX: x0 - px,
               maxX: x1 + px,
@@ -1307,17 +1548,16 @@
               maxY: y1 + py,
             };
           }
-          document.getElementById("statsLabel").textContent =
-            allItems.length + " vectors · " + DIMS + " dims";
+          document.getElementById("hVecs").textContent = items.length;
         } catch (_) {}
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  DEMO SEARCH
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
+      //  SEARCH
+      // ════════════════════════════════════════════════════════
       function setAlgo(el) {
         document
-          .querySelectorAll(".algo-btn")
+          .querySelectorAll(".abtn")
           .forEach((b) => b.classList.remove("on"));
         el.classList.add("on");
         selAlgo = el.dataset.algo;
@@ -1339,7 +1579,7 @@
           document.getElementById("latBig").textContent =
             us < 1000 ? us + " μs" : (us / 1000).toFixed(2) + " ms";
           document.getElementById("latSub").textContent =
-            selAlgo.toUpperCase() + "  ·  " + metric + "  ·  k=" + k;
+            selAlgo.toUpperCase() + " · " + metric + " · k=" + k;
           if (searchResults.length > 0) {
             let sx = 0,
               sy = 0,
@@ -1364,7 +1604,7 @@
           renderResults(searchResults);
           drawVecChart(emb);
         } catch (_) {
-          alert("Cannot reach server — is it running on :8080?");
+          alert("Cannot reach VecDB — is vecdb.exe running on :8080?");
         }
       }
 
@@ -1375,19 +1615,19 @@
       function renderResults(results) {
         if (!results || !results.length) {
           document.getElementById("results").innerHTML =
-            '<div style="color:var(--muted);font-size:11px">No results</div>';
+            '<div class="empty">No results</div>';
           return;
         }
         document.getElementById("results").innerHTML = results
           .map((r, i) => {
             const col = COL[r.category] || COL.default;
-            return `<div class="rcard" onmouseenter="hoverItem={id:${r.id}}" onmouseleave="hoverItem=null">
-      <div class="rrank">#${i + 1} NEAREST</div>
+            return `<div class="rcard ${hitIds.has(r.id) ? "hit" : ""}">
+      <div class="rrank">#${i + 1} nearest</div>
       <div class="rmeta">${r.metadata}</div>
       <div class="rfoot">
         <span class="rcat" style="background:${col}18;color:${col};border:1px solid ${col}44">${r.category.toUpperCase()}</span>
         <span class="rdist">dist: ${r.distance.toFixed(5)}</span>
-        <button class="del" onclick="deleteItem(${r.id})">✕</button>
+        <button class="delbtn" onclick="deleteItem(${r.id})">✕</button>
       </div>
     </div>`;
           })
@@ -1399,34 +1639,37 @@
           W = vc.parentElement.clientWidth;
         vc.width = W;
         const vx = vc.getContext("2d");
-        vx.clearRect(0, 0, W, 76);
-        vx.fillStyle = "#07070f";
-        vx.fillRect(0, 0, W, 76);
+        vx.clearRect(0, 0, W, 72);
+        vx.fillStyle = "#060609";
+        vx.fillRect(0, 0, W, 72);
         const bw = (W - 4) / DIMS;
         for (let i = 0; i < DIMS; i++) {
-          const h = emb[i] * 58,
+          const h = emb[i] * 56,
             x = 2 + i * bw,
             col = DIM_COL[i];
           vx.shadowColor = col;
-          vx.shadowBlur = 5;
-          vx.fillStyle = col + "aa";
-          vx.fillRect(x + 1, 63 - h, bw - 2, h);
+          vx.shadowBlur = 6;
+          vx.fillStyle = col + "99";
+          vx.fillRect(x + 1, 60 - h, bw - 2, h);
         }
         vx.shadowBlur = 0;
-        vx.font = "8px monospace";
+        vx.font = "8px JetBrains Mono,monospace";
         vx.textAlign = "center";
         [
           ["CS", 0],
-          ["MATH", 4],
-          ["FOOD", 8],
-          ["SPORT", 12],
+          ["Math", 4],
+          ["Food", 8],
+          ["Sport", 12],
         ].forEach(([lbl, gi], i) => {
-          vx.fillStyle = Object.values(COL)[i] + "77";
-          vx.fillText(lbl, 2 + (gi + 1.5) * bw, 74);
+          vx.fillStyle = Object.values(COL)[i] + "66";
+          vx.fillText(lbl, 2 + (gi + 1.5) * bw, 70);
         });
         vx.textAlign = "left";
       }
 
+      // ════════════════════════════════════════════════════════
+      //  BENCHMARK
+      // ════════════════════════════════════════════════════════
       async function runBenchmark() {
         const text =
           document.getElementById("qInput").value.trim() ||
@@ -1440,20 +1683,27 @@
           const d = await r.json();
           document.getElementById("benchSec").style.display = "block";
           const mx = Math.max(d.bruteforceUs, d.kdtreeUs, d.hnswUs, 1);
-          document.getElementById("benchBars").innerHTML = [
-            { lbl: "Brute Force", us: d.bruteforceUs, col: "#f38ba8" },
-            { lbl: "KD-Tree", us: d.kdtreeUs, col: "#89dceb" },
-            { lbl: "HNSW", us: d.hnswUs, col: "#b388ff" },
-          ]
+          const rows = [
+            { lbl: "Brute Force", us: d.bruteforceUs, col: "#ff6b6b" },
+            { lbl: "KD-Tree", us: d.kdtreeUs, col: "#00d4aa" },
+            { lbl: "HNSW", us: d.hnswUs, col: "#7c6bff" },
+          ];
+          document.getElementById("benchBars").innerHTML = rows
             .map(({ lbl, us, col }) => {
               const pct = Math.max((us / mx) * 100, 2),
                 disp = us < 1000 ? us + " μs" : (us / 1000).toFixed(2) + " ms";
-              return `<div class="brow"><div class="blabel"><span style="color:${col}">${lbl}</span><span style="color:var(--muted)">${disp}</span></div><div class="btrack"><div class="bfill" style="width:${pct}%;background:${col}"></div></div></div>`;
+              return `<div class="brow">
+        <div class="blabels"><span style="color:${col}">${lbl}</span><span style="color:var(--muted)">${disp}</span></div>
+        <div class="btrack"><div class="bfill" style="width:${pct}%;background:${col}"></div></div>
+      </div>`;
             })
             .join("");
         } catch (_) {}
       }
 
+      // ════════════════════════════════════════════════════════
+      //  HNSW INFO
+      // ════════════════════════════════════════════════════════
       async function loadHNSW() {
         try {
           const r = await fetch(API + "/hnsw-info"),
@@ -1464,13 +1714,22 @@
               .map((cnt, lyr) => {
                 const pct = Math.max((cnt / maxN) * 100, 2),
                   edg = d.edgesPerLayer[lyr] || 0;
-                return `<div class="lrow"><div class="lnum">L${lyr}</div><div class="ltrack"><div class="lfill" style="width:${pct}%"></div></div><div class="lcount">${cnt}n · ${edg}e</div></div>`;
+                return `<div class="lrow">
+        <div class="lnum">L${lyr}</div>
+        <div class="ltrack"><div class="lfill" style="width:${pct}%"></div></div>
+        <div class="lcount">${cnt} nodes · ${edg} edges</div>
+      </div>`;
               })
-              .join("") ||
-            '<div style="color:var(--muted);font-size:11px">Empty</div>';
-        } catch (_) {}
+              .join("") || '<div class="empty">Empty graph</div>';
+        } catch (_) {
+          document.getElementById("layers").innerHTML =
+            '<div class="empty">No HNSW info — using POST /search</div>';
+        }
       }
 
+      // ════════════════════════════════════════════════════════
+      //  ADD VECTOR
+      // ════════════════════════════════════════════════════════
       async function addVector() {
         const meta = document.getElementById("addMeta").value.trim(),
           cat = document.getElementById("addCat").value;
@@ -1503,54 +1762,47 @@
         } catch (_) {}
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  DOCUMENT MANAGEMENT
-      // ════════════════════════════════════════════════════════════
-      async function checkOllamaStatus() {
+      // ════════════════════════════════════════════════════════
+      //  OLLAMA STATUS
+      // ════════════════════════════════════════════════════════
+      async function checkOllama() {
         try {
           const r = await fetch(API + "/status"),
             d = await r.json();
           const badge = document.getElementById("ollamaBadge");
           const box = document.getElementById("ollamaStatus");
           if (d.ollamaAvailable) {
-            badge.className = "badge ok";
-            badge.textContent = "OLLAMA ✓";
-            box.className = "ollama-status ok";
-            box.innerHTML =
-              `<span style="color:var(--green)">● Online</span><br>` +
-              `Embed: <span style="color:var(--accent)">${d.embedModel}</span><br>` +
-              `Generate: <span style="color:var(--accent)">${d.genModel}</span><br>` +
-              `Dims: <span style="color:var(--muted)">${d.docDims || "(first insert sets this)"}</span><br>` +
-              `Documents: <span style="color:var(--text)">${d.docCount}</span>`;
+            badge.className = "hbadge ok";
+            badge.textContent = "Ollama ✓";
+            box.className = "osta ok";
+            box.innerHTML = `<span style="color:var(--a2)">● Online</span><br>Embed: <span style="color:var(--accent)">${d.embedModel}</span><br>Generate: <span style="color:var(--accent)">${d.genModel}</span><br>Documents: <span style="color:var(--text)">${d.docCount || 0}</span>`;
+            document.getElementById("hDocs").textContent = d.docCount || 0;
           } else {
-            badge.className = "badge err";
-            badge.textContent = "OLLAMA ✗";
-            box.className = "ollama-status err";
-            box.innerHTML =
-              `<span style="color:var(--red)">● Offline</span><br><br>` +
-              `To enable RAG features:<br>` +
-              `<span style="color:var(--muted)">1. Install from ollama.com<br>` +
-              `2. ollama pull nomic-embed-text<br>` +
-              `3. ollama pull llama3.2</span>`;
+            badge.className = "hbadge err";
+            badge.textContent = "Ollama ✗";
+            box.className = "osta err";
+            box.innerHTML = `<span style="color:var(--a3)">● Offline</span><br><br>To enable RAG:<br><span style="color:var(--muted)">1. Install from ollama.com<br>2. ollama pull nomic-embed-text<br>3. ollama pull llama3.2</span>`;
           }
         } catch (_) {}
       }
 
+      // ════════════════════════════════════════════════════════
+      //  INSERT DOCUMENT
+      // ════════════════════════════════════════════════════════
       async function insertDocument() {
         const title = document.getElementById("docTitle").value.trim();
         const text = document.getElementById("docText").value.trim();
         const btn = document.getElementById("insertDocBtn");
         const status = document.getElementById("insertStatus");
         if (!title || !text) {
-          status.textContent = "⚠ Need both a title and text.";
+          status.innerHTML =
+            '<div class="istatus err">⚠ Need both title and content.</div>';
           return;
         }
-
         btn.disabled = true;
         btn.textContent = "Embedding…";
         status.innerHTML =
-          '<span style="color:var(--muted)">Calling Ollama nomic-embed-text…</span>';
-
+          '<div class="istatus" style="color:var(--muted)">Calling Ollama nomic-embed-text…</div>';
         try {
           const r = await fetch(API + "/doc/insert", {
             method: "POST",
@@ -1559,13 +1811,12 @@
           });
           const d = await r.json();
           if (d.error) {
-            status.innerHTML = `<span style="color:var(--red)">✗ ${d.error}</span>`;
+            status.innerHTML = `<div class="istatus err">✗ ${d.error}</div>`;
           } else {
-            status.innerHTML = `<span style="color:var(--green)">✓ Inserted ${d.chunks} chunk(s) · ${d.dims}D embeddings</span>`;
+            status.innerHTML = `<div class="istatus ok">✓ Inserted ${d.chunks} chunk(s) · ${d.dims}D embeddings</div>`;
             document.getElementById("docTitle").value = "";
             document.getElementById("docText").value = "";
-
-            // Insert a 16D fake vector into the visualizer DB so it shows up on the map
+            // Add to scatter as doc point
             const emb16 = textToEmbedding(title + " " + text);
             fetch(API + "/insert", {
               method: "POST",
@@ -1575,29 +1826,30 @@
                 category: "doc",
                 embedding: emb16,
               }),
-            }).then(() => {
-              loadItems().then(loadHNSW);
-            });
-
+            }).then(() => loadItems().then(loadHNSW));
             loadDocList();
-            checkOllamaStatus();
+            checkOllama();
           }
         } catch (_) {
           status.innerHTML =
-            '<span style="color:var(--red)">✗ Server error</span>';
+            '<div class="istatus err">✗ Server error — is vecdb.exe running?</div>';
         }
         btn.disabled = false;
-        btn.textContent = "⚡ EMBED & INSERT";
+        btn.textContent = "⚡ Embed & Insert";
       }
 
+      // ════════════════════════════════════════════════════════
+      //  DOC LIST
+      // ════════════════════════════════════════════════════════
       async function loadDocList() {
         try {
           const r = await fetch(API + "/doc/list"),
             docs = await r.json();
           document.getElementById("docCountLabel").textContent = docs.length;
+          document.getElementById("hDocs").textContent = docs.length;
           if (!docs.length) {
             document.getElementById("docList").innerHTML =
-              '<div style="color:var(--muted);font-size:11px">No documents yet.</div>';
+              '<div class="empty">No documents yet.</div>';
             return;
           }
           document.getElementById("docList").innerHTML = docs
@@ -1607,8 +1859,8 @@
         <div class="dcard-title">${d.title}</div>
         <div class="dcard-preview">${d.preview}</div>
         <div class="dcard-foot">
-          <span class="dcard-words">${d.words} words</span>
-          <button class="del" onclick="deleteDoc(${d.id})">✕</button>
+          <span class="dcard-meta">${d.words} words</span>
+          <button class="delbtn" onclick="deleteDoc(${d.id})">✕</button>
         </div>
       </div>`,
             )
@@ -1620,21 +1872,19 @@
         try {
           await fetch(`${API}/doc/delete/${id}`, { method: "DELETE" });
           loadDocList();
-          checkOllamaStatus();
+          checkOllama();
         } catch (_) {}
       }
 
-      // ════════════════════════════════════════════════════════════
-      //  RAG  — Ask AI
-      // ════════════════════════════════════════════════════════════
-      document
-        .getElementById("ragQuestion")
-        .addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && e.ctrlKey) askAI();
-        });
+      // ════════════════════════════════════════════════════════
+      //  ASK AI (RAG)
+      // ════════════════════════════════════════════════════════
+      document.getElementById("ragQ").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && e.ctrlKey) askAI();
+      });
 
       async function askAI() {
-        const question = document.getElementById("ragQuestion").value.trim();
+        const question = document.getElementById("ragQ").value.trim();
         if (!question) return;
         const k = parseInt(document.getElementById("ragK").value);
         const btn = document.getElementById("askBtn");
@@ -1642,16 +1892,12 @@
         btn.textContent = "Thinking…";
 
         const history = document.getElementById("chatHistory");
-        // Clear previous conversation
         history.innerHTML = "";
 
-        // Show question bubble
         const qDiv = document.createElement("div");
         qDiv.className = "chat-q";
         qDiv.textContent = question;
         history.appendChild(qDiv);
-
-        // Show thinking indicator
         const thinkDiv = document.createElement("div");
         thinkDiv.className = "thinking";
         thinkDiv.innerHTML =
@@ -1659,75 +1905,31 @@
         history.appendChild(thinkDiv);
         history.scrollTop = history.scrollHeight;
 
-        // Update the scatter plot visualizer in the background using the real 768D DB
-        fetch(API + "/doc/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, k }),
-        })
+        // update scatter in bg
+        const emb16 = textToEmbedding(question);
+        fetch(`${API}/search?v=${emb16.join(",")}&k=3&metric=cosine&algo=hnsw`)
           .then((res) => res.json())
-          .then((data) => {
-            if (data.contexts && data.contexts.length > 0) {
-              hitIds = new Set();
+          .then((data2) => {
+            if (data2.results && data2.results.length > 0) {
               let sx = 0,
                 sy = 0,
                 sw = 0;
-              data.contexts.forEach((ctx, i) => {
-                // Match the RAG chunk title back to the visualizer document metadata
+              for (let i = 0; i < Math.min(3, data2.results.length); i++) {
                 const pt = pcaPoints.find(
-                  (p) =>
-                    p.item.category === "doc" &&
-                    ctx.title.startsWith(p.item.metadata),
+                  (p) => p.item.id === data2.results[i].id,
                 );
                 if (pt) {
-                  hitIds.add(pt.item.id);
                   const w = 1 / (i + 1);
                   sx += pt.x * w;
                   sy += pt.y * w;
                   sw += w;
                 }
-              });
+              }
               if (sw > 0)
                 queryPt = {
                   x: sx / sw + (Math.random() - 0.5) * 0.015,
                   y: sy / sw + (Math.random() - 0.5) * 0.015,
                 };
-            } else {
-              hitIds = new Set();
-              // Fallback: If no RAG docs match, visually move the star to the 16D semantic space anyway!
-              const emb16 = textToEmbedding(question);
-              fetch(
-                `${API}/search?v=${emb16.join(",")}&k=3&metric=cosine&algo=hnsw`,
-              )
-                .then((res2) => res2.json())
-                .then((data2) => {
-                  if (data2.results && data2.results.length > 0) {
-                    let sx = 0,
-                      sy = 0,
-                      sw = 0;
-                    for (
-                      let i = 0;
-                      i < Math.min(3, data2.results.length);
-                      i++
-                    ) {
-                      const pt = pcaPoints.find(
-                        (p) => p.item.id === data2.results[i].id,
-                      );
-                      if (pt) {
-                        const w = 1 / (i + 1);
-                        sx += pt.x * w;
-                        sy += pt.y * w;
-                        sw += w;
-                      }
-                    }
-                    if (sw > 0)
-                      queryPt = {
-                        x: sx / sw + (Math.random() - 0.5) * 0.015,
-                        y: sy / sw + (Math.random() - 0.5) * 0.015,
-                      };
-                  }
-                })
-                .catch(() => {});
             }
           })
           .catch(() => {});
@@ -1740,62 +1942,52 @@
           });
           const d = await r.json();
           thinkDiv.remove();
-
           const aDiv = document.createElement("div");
           aDiv.className = "chat-a";
-
           if (d.error) {
-            aDiv.innerHTML = `<div class="chat-a-label">ERROR</div><div class="chat-a-text" style="color:var(--red)">${d.error}</div>`;
+            aDiv.innerHTML = `<div class="chat-label">Error</div><div class="chat-text" style="color:var(--a3)">${d.error}</div>`;
           } else {
-            // Build answer block with typewriter
             aDiv.innerHTML =
-              `<div class="chat-a-label">🤖 ${d.model || "llm"}</div>` +
-              `<div class="chat-a-text" id="typeTarget"></div>` +
+              `<div class="chat-label">🤖 ${d.model || "llama3.2"}</div>` +
+              `<div class="chat-text cursor" id="typeTarget"></div>` +
               `<div class="chat-ctx">` +
-              `<div class="chat-ctx-label">RETRIEVED CONTEXT (${d.contexts.length} chunks)</div>` +
+              `<div class="ctx-label">Retrieved Context (${d.contexts.length} chunks)</div>` +
+              `<div class="ctx-chips">` +
               d.contexts
                 .map(
                   (c, i) =>
-                    `<span class="ctx-chip" onclick="toggleCtx(${i})">#${i + 1} ${c.title} · ${c.distance.toFixed(3)}</span>` +
-                    `<div class="ctx-expand" id="ctx-${i}">${c.text}</div>`,
+                    `<span class="cchip" onclick="toggleCtx(${i})">#${i + 1} ${c.title} · ${c.distance.toFixed(3)}</span><div class="ctx-expand" id="ctx-${i}">${c.text}</div>`,
                 )
                 .join("") +
-              `</div>`;
+              `</div></div>`;
             history.appendChild(aDiv);
-
-            // Typewriter effect
             const target = aDiv.querySelector("#typeTarget");
-            target.classList.add("typing");
             const full = d.answer;
             let i = 0;
             const timer = setInterval(() => {
               if (i >= full.length) {
                 clearInterval(timer);
-                target.classList.remove("typing");
+                target.classList.remove("cursor");
                 return;
               }
-              const chunk = full.slice(i, i + 3);
-              target.textContent += chunk;
+              target.textContent += full.slice(i, i + 3);
               i += 3;
               history.scrollTop = history.scrollHeight;
-            }, 18);
+            }, 16);
           }
-
           if (!d.error) {
-            /* already appended above */
           } else history.appendChild(aDiv);
-        } catch (e) {
+        } catch (_) {
           thinkDiv.remove();
           const err = document.createElement("div");
           err.className = "chat-a";
           err.innerHTML =
-            '<div class="chat-a-label">ERROR</div><div class="chat-a-text" style="color:var(--red)">Server error — is the backend running?</div>';
+            '<div class="chat-label">Error</div><div class="chat-text" style="color:var(--a3)">Server error — is vecdb.exe running?</div>';
           history.appendChild(err);
         }
-
-        document.getElementById("ragQuestion").value = "";
+        document.getElementById("ragQ").value = "";
         btn.disabled = false;
-        btn.textContent = "🤖 ASK AI";
+        btn.textContent = "🤖 Ask AI";
         history.scrollTop = history.scrollHeight;
       }
 
@@ -1804,13 +1996,14 @@
         el.style.display = el.style.display === "block" ? "none" : "block";
       }
 
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       //  BOOT
-      // ════════════════════════════════════════════════════════════
+      // ════════════════════════════════════════════════════════
       resize();
       drawFrame();
       loadItems().then(loadHNSW);
-      checkOllamaStatus();
+      checkOllama();
+      setInterval(checkOllama, 15000);
     </script>
   </body>
 </html>

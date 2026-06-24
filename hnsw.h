@@ -166,4 +166,22 @@ public:
     int get_max_layer() { return max_layer; }
     int get_node_count() { return nodes.size(); }
     string get_entry_point() { return entry_point; }
+
+    int get_nodes_at_layer(int layer) {
+        int count = 0;
+        for (auto& [id, node] : nodes) {
+            if (node.max_layer >= layer) count++;
+        }
+        return count;
+    }
+
+    int get_edges_at_layer(int layer) {
+        int count = 0;
+        for (auto& [id, node] : nodes) {
+            if (node.max_layer >= layer && layer < (int)node.neighbors.size()) {
+                count += node.neighbors[layer].size();
+            }
+        }
+        return count / 2;
+    }
 };
